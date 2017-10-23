@@ -1,0 +1,5 @@
+module CrystalBalls
+
+# package code goes here
+
+end # module
