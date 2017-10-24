@@ -1,5 +1,6 @@
+__precompile__(true)
 module CrystalBalls
 
-# package code goes here
+include("unitary.jl")
 
 end # module
