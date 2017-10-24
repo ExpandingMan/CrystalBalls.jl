@@ -8,3 +8,7 @@ pure gauge and theories with only squarks, as fermions are a tremendous pain-in-
 Ideally I'd like to write some really beautifully Julian code here, but my first attempt will probably be mainly practical.
 
 This is a side-project being done in my free time and I may or may not decide to actually work on it.
+
+## References
+My primary references have been [this nice primer](https://arxiv.org/abs/hep-lat/0012005) and these straightforward and accessible [lecture
+notes](https://arxiv.org/abs/1410.3403).

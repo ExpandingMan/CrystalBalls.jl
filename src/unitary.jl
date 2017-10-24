@@ -1,12 +1,17 @@
 # code for generating uniform random unitary matrices
 # TODO for now we'll just do SU(2)
 
+# obviously this does not in itself guarantee unitarity
+const UnitaryMatrix = Matrix{Complex{Float64}}
+
 # will eventually need to replace with boilerplate code for random SU(N) generators
 const σ₁ = Complex{Float64}[0 1; 1 0]
 const σ₂ = Complex{Float64}[0 -im; im 0]
 const σ₃ = Complex{Float64}[1 0; 0 -1]
 
 const σ⃗ = [σ₁, σ₂, σ₃]
+
+const one2by2 = eye(Complex{Float64}, 2)
 
 
 """
@@ -31,13 +36,36 @@ randazimuth(::Type{T}) where T = 2π*rand(T)
 randazimuth() = randazimuth(Float64)
 
 
-# TODO this version is probably ridiculously inefficient
+"""
+    randSU2_ineff()
+
+An elegant way of generating uniformly distributed random SU(2)
+matrices.  This version appears inefficient, as it probably does
+lots of dense matrix multiplication.
+"""
+randSU2_ineff(ϕ::AbstractFloat, n::AbstractVector) = expm(im*ϕ*n'*σ⃗)
+randSU2_ineff() = randSU2_ineff(randazimuth(), randunitvec(3))
+export randSU2_ineff
+
+
 """
     randSU2()
 
-Creates a random SU(2) matrix, uniformly distributed
-on SU(2).
+Generate a random matrix uniformly distributed on SU(2).
+Only involves scalar multiplication and dense matrix addition.
 """
-randSU2(ϕ::AbstractFloat, n::AbstractVector) = expm(im*ϕ*n'*σ⃗)
+function randSU2(ϕ::AbstractFloat, n::AbstractVector)
+    one2by2*cos(ϕ) + im*(n'*σ⃗)*sin(ϕ)
+end
 randSU2() = randSU2(randazimuth(), randunitvec(3))
 export randSU2
+
+
+"""
+    tr(A)
+
+Returns the trace of a matrix. This is simply a convenient alias
+for the Julia function `trace`.
+"""
+tr(A) = trace(A)
+export tr
