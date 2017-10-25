@@ -1,5 +1,7 @@
 using CrystalBalls
+using StaticArrays
 
 lat = LatticeToroidal(1, 1.0, 3)
 
-field = GaugeFieldSU2(lat)
+U = GaugeFieldSU2(lat)
+# U = rand(GaugeFieldSU2, lat)

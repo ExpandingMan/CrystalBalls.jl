@@ -1,5 +1,6 @@
 # code for generating uniform random unitary matrices
 # TODO for now we'll just do SU(2)
+# TODO generators should probably be of the Julia Hermitian type
 
 # obviously this does not in itself guarantee unitarity
 const UnitaryMatrix = Matrix{Complex{Float64}}
