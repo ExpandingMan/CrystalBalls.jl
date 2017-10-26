@@ -11,4 +11,9 @@ This is a side-project being done in my free time and I may or may not decide to
 
 ## References
 My primary references have been [this nice primer](https://arxiv.org/abs/hep-lat/0012005) and these straightforward and accessible [lecture
-notes](https://arxiv.org/abs/1410.3403).
+notes](https://arxiv.org/abs/1410.3403).  Peter LePage's [tutorial](https://arxiv.org/abs/hep-lat/0506036) contains some practical advice on doing lattice
+calculations for pure gauge theories and is also a useful reference for numerical computation of functional integrals in quantum theories more generally.
+
+In addition see:
+
+- Z Fodor, C Hoelbling, "Light Hadron Masses from Lattice QCD", https://arxiv.org/abs/1203.4789
