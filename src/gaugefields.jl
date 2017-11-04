@@ -90,8 +90,11 @@ export untracedplaquette
     plaquette(U::AbstractGaugeField, μ::Integer, ν::Integer, x::SVector)
 
 Compute the value of the plaquette at location `x` over the gauge field.
+
+Note that we follow the definition in the "Lattice QCD For Novices" paper and define the paquette
+to be the real part of the trace.
 """
-plaquette(U::AbstractGaugeField, μ::Integer, ν::Integer, x::SVector) = tr(untracedplaquette(U,μ,ν,x))
+plaquette(U::AbstractGaugeField, μ::Integer, ν::Integer, x::SVector) = real(tr(untracedplaquette(U,μ,ν,x)))/3.0
 export plaquette
 
 
@@ -101,12 +104,14 @@ export plaquette
 Compute the lowest order Wilson plaquette Lagrangian at location `x` and inverse temperature `β`.
 
 Note that this has a factor of a^4 in front of it relative to the usual G^2 Yang-Mills kinetic term.
+
+Note that we neglect the constant term altogether.
 """
 function wilsonlagrangian(U::AbstractGaugeField, β::AbstractFloat, x::SVector)
     ℒ = 0.0
     for μ ∈ 1:(U.lattice.D+1)
         for ν ∈ 1:(μ-1)
-            ℒ += 1.0 - real(plaquette(U, μ, ν, x))/3.0
+            ℒ -= plaquette(U, μ, ν, x)
         end
     end
     β*ℒ
@@ -118,6 +123,8 @@ export wilsonlagrangian
     wilsonaction(U::AbstractGaugeField, β::AbstractFloat)
 
 Compute the Wilson plaquette action at inverse temperature `β`.
+
+Again, the constant term is neglected.
 """
 function wilsonaction(U::AbstractGaugeField, β::AbstractFloat)
     S = 0.0

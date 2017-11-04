@@ -50,14 +50,27 @@ export randSU2_ineff
 
 
 """
+    SU2(ϕ::AbstractFloat, n::AbstractVector)
+
+Creat a vector from SU(2) with phase `ϕ*n`.
+"""
+function SU2(ϕ::AbstractFloat, n::AbstractVector)
+    one2by2*cos(ϕ) + im*(n'*σ⃗)*sin(ϕ)
+end
+export SU2
+
+
+"""
+    randSU2(ϕmax::AbstractFloat)
     randSU2()
 
 Generate a random matrix uniformly distributed on SU(2).
 Only involves scalar multiplication and dense matrix addition.
+
+If Φmax is provided, the magnitude of the phase will lie in the
+interval [0, ϕmax) (the randomly generated unit vector can be negative).
 """
-function randSU2(ϕ::AbstractFloat, n::AbstractVector)
-    one2by2*cos(ϕ) + im*(n'*σ⃗)*sin(ϕ)
-end
+randSU2(ϕmax::AbstractFloat) = SU2(ϕmax*rand(), randunitvec(3))
 randSU2() = randSU2(randazimuth(), randunitvec(3))
 export randSU2
 

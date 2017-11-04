@@ -16,5 +16,6 @@ import Base: getindex, sub2ind, dec
 include("unitary.jl")
 include("lattice.jl")
 include("gaugefields.jl")
+include("metropolis.jl")
 
 end # module
