@@ -1,7 +1,10 @@
 using CrystalBalls
 using StaticArrays
+using BenchmarkTools
 
-lat = LatticeToroidal(1, 1.0, 3)
+lat = LatticeToroidal(2, 1.0, 3)
 
-U = GaugeFieldSU2(lat)
-# U = rand(GaugeFieldSU2, lat)
+x = SVector(0, 0)
+
+# U = GaugeFieldSU2(lat)
+U = rand(GaugeFieldSU2, lat)

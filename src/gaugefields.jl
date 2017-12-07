@@ -8,33 +8,30 @@
 const WilsonLineVar = Vector{UnitaryMatrix}
 export WilsonLineVar
 
-wilsonlineunity(N::Integer, D::Integer) = UnitaryMatrix[eye(Complex{Float64}, N) for d ∈ 1:(D+1)]
-wilsonlineunity(N::Integer, lat::AbstractLattice) = wilsonlineunity(N, lat.D)
+wilsonlineunity(N::Integer, d::Integer) = UnitaryMatrix[eye(Complex{Float64}, N) for i ∈ 1:d]
+wilsonlineunity(N::Integer, lat::AbstractLattice{d}) where d = wilsonlineunity(N, d)
 export wilsonlineunity
 
-randwilsonlineSU2(D::Integer) = UnitaryMatrix[randSU2() for d ∈ 1:(D+1)]
-randwilsonlineSU2(lat::AbstractLattice) = randwilsonlineSU2(lat.D)
+randwilsonlineSU2(d::Integer) = UnitaryMatrix[randSU2() for i ∈ 1:d]
+randwilsonlineSU2(lat::AbstractLattice{d}) where d = randwilsonlineSU2(d)
 export randwilsonlineSU2
 
 """
-    GaugeFieldSU2{n} <: AbstractGaugeField
+    GaugeFieldSU2{d} <: AbstractGaugeField
 
 An SU(2) gauge field.  Note that we take the fundamental field variables to be Wilson lines emanating
-from lattice site x in direction μ. Here `n` is the total number of dimensions `D+1`.
+from lattice site x in direction μ. Here `d` is the total number of dimensions `D+1`.
 """
-struct GaugeFieldSU2{n} <: AbstractGaugeField{n}
-    field::Array{WilsonLineVar, n}
-    lattice::AbstractLattice
+struct GaugeFieldSU2{d} <: AbstractGaugeField{d}
+    field::Array{WilsonLineVar, d}
+    lattice::AbstractLattice{d}
 
-    GaugeFieldSU2{n}(st::AbstractArray{WilsonLineVar,n}, lat::AbstractLattice) where n = new(st, lat)
+    GaugeFieldSU2{d}(st::AbstractArray{WilsonLineVar,d}, lat::AbstractLattice) where d = new(st, lat)
 end
 export GaugeFieldSU2
 
-function GaugeFieldSU2(spacetime::AbstractArray{WilsonLineVar,n}, lat::AbstractLattice) where n
-    if lat.D + 1 ≠ n
-        ArgumentError("Incompatible spacetime dimensions.")
-    end
-    GaugeFieldSU2{n}(spacetime, lat)
+function GaugeFieldSU2(spacetime::AbstractArray{WilsonLineVar,d}, lat::AbstractLattice{d}) where d
+    GaugeFieldSU2{d}(spacetime, lat)
 end
 
 # for now this just creates a "vacuum" with A=0 everywhere
@@ -48,25 +45,21 @@ function GaugeFieldSU2(lat::AbstractLattice)
 end
 
 
-# TODO ensure that splatting really is ok here!
+# TODO ensure that splatting is really ok here!
 # gets the gauge field at spacetime location x1, t
-function Base.getindex(f::GaugeFieldSU2, x::Tuple)
-    idx = getindex(f.lattice, x)
-    getindex(f.field, idx...)
+function (U::GaugeFieldSU2)(x::Tuple)
+    idx = getindex(U.lattice, x)
+    getindex(U.field, idx...)
 end
-Base.getindex(f::GaugeFieldSU2, x::SVector) = getindex(f, Tuple(x))
-Base.getindex(f::GaugeFieldSU2, x...) = getindex(f, x...)
+(U::GaugeFieldSU2)(x::SVector) = U(Tuple(x))
+(U::GaugeFieldSU2)(x...) = U(x...)
 
+# returns spacetime function of U[μ]
+getindex(U::GaugeFieldSU2, μ::Integer) = x -> U(x)[μ]
 
-# TODO should do this for abstract gauge field, must make parametric
-# this gets each spatial index of the gauge field
-function eachspacetimeindex(U::AbstractGaugeField{n}) where n
-    (SVector{n}(ind2sub(size(U.field), x)) for x ∈ eachindex(U.field))
-end
-export eachspacetimeindex
+eachspacetimeindex(U::AbstractGaugeField{d}) where d = eachspacetimeindex(U.lattice)
 
-
-function Base.rand(::Type{GaugeFieldSU2}, lat::AbstractLattice)
+function rand(::Type{GaugeFieldSU2}, lat::AbstractLattice)
     spacetime = fieldsites(WilsonLineVar, lat)
     for idx ∈ eachindex(spacetime)
         spacetime[idx] = randwilsonlineSU2(lat)
@@ -76,13 +69,13 @@ end
 
 
 """
-    untracedplaquette(μ::Int, ν::Int, x::Tuple)
+    untracedplaquette(U::AbstractGaugeField, μ::Int, ν::Int, x::Tuple)
 
-Compute the value of a plaquetee before taking the trace.  In other words
+Compute the value of a plaquette before taking the trace.  In other words
 \$\$ U_{\mu}(x)U_{\nu}(x+e_{\mu})U^{\dagger}_{\mu}(x+e_{\nu})U^{\dagger}_{\nu}(x) \$\$
 """
 function untracedplaquette(U::AbstractGaugeField, μ::Integer, ν::Integer, x::SVector)
-    U[x][μ]*U[inc(x,μ)][ν]*U[inc(x,ν)][μ]'*U[x][ν]'
+    U[μ](x)*U[ν](inc(x,μ))*U[μ](inc(x,ν))'*U[ν](x)'
 end
 export untracedplaquette
 
@@ -93,8 +86,10 @@ Compute the value of the plaquette at location `x` over the gauge field.
 
 Note that we follow the definition in the "Lattice QCD For Novices" paper and define the paquette
 to be the real part of the trace.
+
+*TODO*: Note that ideally the normalization factor here should depend on the gauge group.
 """
-plaquette(U::AbstractGaugeField, μ::Integer, ν::Integer, x::SVector) = real(tr(untracedplaquette(U,μ,ν,x)))/3.0
+plaquette(U::AbstractGaugeField, μ::Integer, ν::Integer, x::SVector) = real(tr(untracedplaquette(U,μ,ν,x)))/2.0
 export plaquette
 
 
@@ -107,9 +102,9 @@ Note that this has a factor of a^4 in front of it relative to the usual G^2 Yang
 
 Note that we neglect the constant term altogether.
 """
-function wilsonlagrangian(U::AbstractGaugeField, β::AbstractFloat, x::SVector)
+function wilsonlagrangian(U::AbstractGaugeField{d}, β::AbstractFloat, x::SVector) where d
     ℒ = 0.0
-    for μ ∈ 1:(U.lattice.D+1)
+    for μ ∈ 1:d
         for ν ∈ 1:(μ-1)
             ℒ -= plaquette(U, μ, ν, x)
         end
@@ -126,11 +121,11 @@ Compute the Wilson plaquette action at inverse temperature `β`.
 
 Again, the constant term is neglected.
 """
-function wilsonaction(U::AbstractGaugeField, β::AbstractFloat)
+function wilsonaction(U::AbstractGaugeField{d}, β::AbstractFloat) where d
     S = 0.0
     for x ∈ eachspacetimeindex(U)
         S += wilsonlagrangian(U, β, x)
     end
-    S/a^(3 - U.lattice.D) # this factor to fix the powers of a
+    S/U.lattice.a^(4 - d) # this factor to fix the powers of a
 end
 export wilsonaction

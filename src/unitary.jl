@@ -71,7 +71,7 @@ If Φmax is provided, the magnitude of the phase will lie in the
 interval [0, ϕmax) (the randomly generated unit vector can be negative).
 """
 randSU2(ϕmax::AbstractFloat) = SU2(ϕmax*rand(), randunitvec(3))
-randSU2() = randSU2(randazimuth(), randunitvec(3))
+randSU2() = randSU2(randazimuth())
 export randSU2
 
 

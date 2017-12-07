@@ -3,15 +3,15 @@ module CrystalBalls
 
 using StaticArrays
 
-# abstract types
-abstract type AbstractLattice end
+# abstract types, d is number of spacetime dimensions
+abstract type AbstractLattice{d} end
 # the type parameters give the spacetime dimensionality
-abstract type AbstractField{n} end
-abstract type AbstractGaugeField{n} <: AbstractField{n} end
+abstract type AbstractField{d} end
+abstract type AbstractGaugeField{d} <: AbstractField{d} end
 export AbstractLattice, AbstractField, AbstractGaugeField
 
 import Base.rand
-import Base: getindex, sub2ind, dec
+import Base: size, getindex, sub2ind, dec
 
 include("unitary.jl")
 include("lattice.jl")
